@@ -343,13 +343,16 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
   font-weight: 700;
 }
 .cal-cell.disabled {
-  color: #ddd;
+  background: #1a1a1a;
+  color: #1a1a1a;
   cursor: default;
+  border-color: #111;
 }
 .cal-cell.past {
-  color: #ccc;
+  color: #bbb;
   cursor: not-allowed;
   text-decoration: line-through;
+  background: #f3f3f3;
 }
 .cal-cell.empty {
   cursor: default;
