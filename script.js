@@ -163,20 +163,26 @@ updateSelected();
 // ── CLOCK ─────────────────────────────────────────────────
 const clockEl = document.getElementById("clock");
 function updateClock() {
+  if (!clockEl) return;
   const now = new Date();
-  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const day  = days[now.getDay()];
-  const date = now.getDate();
-  const mon  = months[now.getMonth()];
   let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
   const ampm = h >= 12 ? "PM" : "AM";
   h = h % 12 || 12;
-  const time = `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")} ${ampm}`;
-  clockEl.textContent = `${day}, ${mon} ${date}  ·  ${time}`;
+  clockEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}  ·  ${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")} ${ampm}`;
 }
 updateClock();
 setInterval(updateClock, 1000);
+
+// ── TODAY LABEL above calendar ────────────────────────────
+const todayLabelEl = document.getElementById("todayLabel");
+if (todayLabelEl) {
+  const t = new Date();
+  const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  todayLabelEl.textContent = `Today is ${days[t.getDay()]}, ${months[t.getMonth()]} ${t.getDate()}, ${t.getFullYear()}`;
+}
 
 // ── FORM ─────────────────────────────────────────────────
 
@@ -234,7 +240,14 @@ form.addEventListener("submit", async (e) => {
 });
 
 function showSuccess() {
-  form.hidden = true;
+  // Clear form data
+  form.reset();
+  selectedDates.clear();
+  renderCalendar();
+  updateSelected();
+
+  // Hide form, show success
+  form.style.display = "none";
   successMsg.removeAttribute("hidden");
   successMsg.scrollIntoView({ behavior: "smooth", block: "center" });
 }
