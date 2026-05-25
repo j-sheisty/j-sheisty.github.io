@@ -6,8 +6,8 @@ const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbypjO_O8XXkczBUx5
 
 // ── CALENDAR ─────────────────────────────────────────────
 
-const CAMP_START = { year: 2025, month: 6 };  // June 2025 (month is 0-indexed)
-const CAMP_END   = { year: 2025, month: 7 };  // August 2025
+const CAMP_START = { year: 2026, month: 5 };  // June 2026 (month is 0-indexed)
+const CAMP_END   = { year: 2026, month: 7 };  // August 2026
 
 const selectedDates = new Set(); // stored as "YYYY-MM-DD"
 
