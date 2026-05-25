@@ -92,9 +92,7 @@ function renderMonth(year, month) {
     const isPast        = cellDate < todayMidnight;
     const isToday       = cellDate.getTime() === todayMidnight.getTime();
 
-    if (isWeekend) {
-      cell.classList.add("disabled");
-    } else if (isPast) {
+    if (isPast) {
       cell.classList.add("past");
     } else {
       if (isToday)                        cell.classList.add("today");
