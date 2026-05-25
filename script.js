@@ -11,8 +11,16 @@ const CAMP_END   = { year: 2026, month: 7 };  // August 2026
 
 const selectedDates = new Set(); // stored as "YYYY-MM-DD"
 
-let viewYear  = CAMP_START.year;
-let viewMonth = CAMP_START.month;
+// Start calendar at today's month, clamped to camp range
+const _now = new Date();
+let viewYear  = _now.getFullYear();
+let viewMonth = _now.getMonth();
+if (viewYear < CAMP_START.year || (viewYear === CAMP_START.year && viewMonth < CAMP_START.month)) {
+  viewYear = CAMP_START.year; viewMonth = CAMP_START.month;
+}
+if (viewYear > CAMP_END.year || (viewYear === CAMP_END.year && viewMonth > CAMP_END.month)) {
+  viewYear = CAMP_END.year; viewMonth = CAMP_END.month;
+}
 
 const calendarWrap  = document.getElementById("calendarWrap");
 const selectedEl    = document.getElementById("selectedDates");
@@ -79,15 +87,18 @@ function renderMonth(year, month) {
     const dateStr = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const isWeekend = dow === 0 || dow === 6;
 
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const cellDate      = new Date(year, month, d);
+    const isPast        = cellDate < todayMidnight;
+    const isToday       = cellDate.getTime() === todayMidnight.getTime();
+
     if (isWeekend) {
       cell.classList.add("disabled");
+    } else if (isPast) {
+      cell.classList.add("past");
     } else {
-      if (selectedDates.has(dateStr)) cell.classList.add("selected");
-
-      // Highlight today
-      if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
-        cell.classList.add("today");
-      }
+      if (isToday)                        cell.classList.add("today");
+      if (selectedDates.has(dateStr))     cell.classList.add("selected");
 
       cell.addEventListener("click", () => {
         if (selectedDates.has(dateStr)) {
@@ -150,6 +161,24 @@ function updateSelected() {
 
 renderCalendar();
 updateSelected();
+
+// ── CLOCK ─────────────────────────────────────────────────
+const clockEl = document.getElementById("clock");
+function updateClock() {
+  const now = new Date();
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const day  = days[now.getDay()];
+  const date = now.getDate();
+  const mon  = months[now.getMonth()];
+  let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  const time = `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")} ${ampm}`;
+  clockEl.textContent = `${day}, ${mon} ${date}  ·  ${time}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
 
 // ── FORM ─────────────────────────────────────────────────
 

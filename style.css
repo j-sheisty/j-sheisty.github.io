@@ -47,6 +47,11 @@ header .wrap {
   justify-content: space-between;
   height: 56px;
 }
+.clock {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+}
 .site-name {
   font-weight: 700;
   font-size: 1rem;
@@ -341,15 +346,22 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
   color: #ddd;
   cursor: default;
 }
+.cal-cell.past {
+  color: #ccc;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
 .cal-cell.empty {
   cursor: default;
 }
 .cal-cell.today {
+  background: var(--accent-bg);
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 700;
 }
 .cal-cell.today.selected {
+  background: var(--accent);
   color: #fff;
 }
 
