@@ -47,11 +47,6 @@ header .wrap {
   justify-content: space-between;
   height: 56px;
 }
-.clock {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--muted);
-}
 .site-name {
   font-weight: 700;
   font-size: 1rem;
@@ -253,18 +248,6 @@ button[type="submit"]:hover { background: #144d2b; }
 button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* SELECTED DATES */
-.today-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 1px solid #c0dfc9;
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 99px;
-  margin-bottom: 10px;
-}
-
 .selected-dates {
   font-size: 0.85rem;
   color: var(--accent);

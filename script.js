@@ -6,21 +6,16 @@ const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbypjO_O8XXkczBUx5
 
 // ── CALENDAR ─────────────────────────────────────────────
 
-const CAMP_START = { year: 2026, month: 5 };  // June 2026 (month is 0-indexed)
-const CAMP_END   = { year: 2026, month: 7 };  // August 2026
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0);
+
+const LAST_MONTH = { year: 2026, month: 7 }; // August 2026 — last navigable month
 
 const selectedDates = new Set(); // stored as "YYYY-MM-DD"
 
-// Start calendar at today's month, clamped to camp range
-const _now = new Date();
-let viewYear  = _now.getFullYear();
-let viewMonth = _now.getMonth();
-if (viewYear < CAMP_START.year || (viewYear === CAMP_START.year && viewMonth < CAMP_START.month)) {
-  viewYear = CAMP_START.year; viewMonth = CAMP_START.month;
-}
-if (viewYear > CAMP_END.year || (viewYear === CAMP_END.year && viewMonth > CAMP_END.month)) {
-  viewYear = CAMP_END.year; viewMonth = CAMP_END.month;
-}
+// Always open at the current month
+let viewYear  = TODAY.getFullYear();
+let viewMonth = TODAY.getMonth();
 
 const calendarWrap  = document.getElementById("calendarWrap");
 const selectedEl    = document.getElementById("selectedDates");
@@ -35,29 +30,26 @@ function renderCalendar() {
 
 function renderMonth(year, month) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const today = new Date();
 
-  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const firstDay    = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const wrap = document.createElement("div");
   wrap.className = "cal-month";
 
-  // Header
+  // Can't go before today's month; can't go past LAST_MONTH
+  const canGoPrev = !(year === TODAY.getFullYear() && month === TODAY.getMonth());
+  const canGoNext = !(year === LAST_MONTH.year && month === LAST_MONTH.month);
+
   const header = document.createElement("div");
   header.className = "cal-month-header";
-
-  const canGoPrev = !(year === CAMP_START.year && month === CAMP_START.month);
-  const canGoNext = !(year === CAMP_END.year   && month === CAMP_END.month);
-
   header.innerHTML = `
-    <button class="cal-nav" id="calPrev" ${canGoPrev ? "" : "disabled style='opacity:0.2;cursor:default'"}>&#8592;</button>
+    <button class="cal-nav" id="calPrev" ${canGoPrev ? "" : "style='opacity:0.2;cursor:default;pointer-events:none'"}>&#8592;</button>
     <h3>${monthNames[month]} ${year}</h3>
-    <button class="cal-nav" id="calNext" ${canGoNext ? "" : "disabled style='opacity:0.2;cursor:default'"}>&#8594;</button>
+    <button class="cal-nav" id="calNext" ${canGoNext ? "" : "style='opacity:0.2;cursor:default;pointer-events:none'"}>&#8594;</button>
   `;
   wrap.appendChild(header);
 
-  // Weekday labels
   const weekdays = document.createElement("div");
   weekdays.className = "cal-weekdays";
   ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d => {
@@ -67,11 +59,9 @@ function renderMonth(year, month) {
   });
   wrap.appendChild(weekdays);
 
-  // Days grid
   const grid = document.createElement("div");
   grid.className = "cal-days";
 
-  // Empty cells before first day
   for (let i = 0; i < firstDay; i++) {
     const empty = document.createElement("div");
     empty.className = "cal-cell empty";
@@ -79,24 +69,20 @@ function renderMonth(year, month) {
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const cell = document.createElement("div");
+    const cell     = document.createElement("div");
+    const dateStr  = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const cellDate = new Date(year, month, d);
+    const isPast   = cellDate < TODAY;
+    const isToday  = cellDate.getTime() === TODAY.getTime();
+
     cell.className = "cal-cell";
     cell.textContent = d;
-
-    const dow = new Date(year, month, d).getDay(); // 0=Sun, 6=Sat
-    const dateStr = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const isWeekend = dow === 0 || dow === 6;
-
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const cellDate      = new Date(year, month, d);
-    const isPast        = cellDate < todayMidnight;
-    const isToday       = cellDate.getTime() === todayMidnight.getTime();
 
     if (isPast) {
       cell.classList.add("past");
     } else {
-      if (isToday)                        cell.classList.add("today");
-      if (selectedDates.has(dateStr))     cell.classList.add("selected");
+      if (isToday)                    cell.classList.add("today");
+      if (selectedDates.has(dateStr)) cell.classList.add("selected");
 
       cell.addEventListener("click", () => {
         if (selectedDates.has(dateStr)) {
@@ -116,24 +102,16 @@ function renderMonth(year, month) {
   wrap.appendChild(grid);
   calendarWrap.appendChild(wrap);
 
-  // Nav
-  const prevBtn = wrap.querySelector("#calPrev");
-  const nextBtn = wrap.querySelector("#calNext");
-
-  if (prevBtn && canGoPrev) {
-    prevBtn.addEventListener("click", () => {
-      if (viewMonth === 0) { viewMonth = 11; viewYear--; }
-      else viewMonth--;
-      renderCalendar();
-    });
-  }
-  if (nextBtn && canGoNext) {
-    nextBtn.addEventListener("click", () => {
-      if (viewMonth === 11) { viewMonth = 0; viewYear++; }
-      else viewMonth++;
-      renderCalendar();
-    });
-  }
+  wrap.querySelector("#calPrev").addEventListener("click", () => {
+    if (!canGoPrev) return;
+    if (viewMonth === 0) { viewMonth = 11; viewYear--; } else viewMonth--;
+    renderCalendar();
+  });
+  wrap.querySelector("#calNext").addEventListener("click", () => {
+    if (!canGoNext) return;
+    if (viewMonth === 11) { viewMonth = 0; viewYear++; } else viewMonth++;
+    renderCalendar();
+  });
 }
 
 function updateSelected() {
@@ -160,29 +138,6 @@ function updateSelected() {
 renderCalendar();
 updateSelected();
 
-// ── CLOCK ─────────────────────────────────────────────────
-const clockEl = document.getElementById("clock");
-function updateClock() {
-  if (!clockEl) return;
-  const now = new Date();
-  const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  clockEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}  ·  ${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")} ${ampm}`;
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-// ── TODAY LABEL above calendar ────────────────────────────
-const todayLabelEl = document.getElementById("todayLabel");
-if (todayLabelEl) {
-  const t = new Date();
-  const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  todayLabelEl.textContent = `Today is ${days[t.getDay()]}, ${months[t.getMonth()]} ${t.getDate()}, ${t.getFullYear()}`;
-}
 
 // ── FORM ─────────────────────────────────────────────────
 
