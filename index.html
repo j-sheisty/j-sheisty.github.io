@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camp Washek — Summer 2025</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <header>
+    <div class="wrap">
+      <span class="site-name">Camp Washek</span>
+      <a href="#signup">Sign up</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- INTRO -->
+    <section class="intro">
+      <div class="wrap">
+        <h1>Summer camp for 5th graders.</h1>
+        <p>Sports, games, and arts. Small group — 20 kids max. About $10 an hour. Run by John and Luke Washek.</p>
+        <div class="tags">
+          <span>Basketball</span>
+          <span>Touch football</span>
+          <span>Arts &amp; crafts</span>
+          <span>Team competitions</span>
+          <span>Mon – Fri, 10am – 1pm</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about">
+      <div class="wrap">
+        <div class="about-cols">
+          <div>
+            <h2>Who we are</h2>
+            <p>John is a University of Michigan engineering student who has been coaching basketball for kids this age for years. Luke co-runs the camp day-to-day. We grew up around a lot of the kids already signed up — this isn't a business, it's a camp we wanted to exist.</p>
+            <p>We keep it small on purpose. Every kid gets real attention, nobody sits out, and parents can always check in.</p>
+            <blockquote>
+              "John has known Vico since he was born. He's patient, energetic, and Vico loves every second of it. I wouldn't hesitate to recommend this."
+              <cite>— Joel, Vico's mom</cite>
+            </blockquote>
+          </div>
+          <div>
+            <h2>What to expect</h2>
+            <ul class="expect-list">
+              <li>Different activity each day — basketball, football, arts, games</li>
+              <li>Teams compete across the week, then reset every Friday with new teams</li>
+              <li>Touch football only — no tackling, strict rule</li>
+              <li>Max 20 kids, always supervised</li>
+              <li>~$10/hr, paid in person — no apps, no subscriptions</li>
+              <li>You pick which days work. No pressure to come every day.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIGN UP -->
+    <section class="signup" id="signup">
+      <div class="wrap">
+        <h2>Sign up</h2>
+        <p class="signup-sub">Pick the dates you want, then fill in your info. I'll reach out to confirm. No payment needed now.</p>
+
+        <form id="signupForm" novalidate>
+
+          <div class="field-group">
+            <label>Pick your dates</label>
+            <p class="field-hint">Click any weekday to select it. Click again to remove it.</p>
+            <div class="calendar-wrap" id="calendarWrap"></div>
+            <div class="selected-dates" id="selectedDates">No dates selected</div>
+            <input type="hidden" id="daysInput" name="selected_dates" />
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="parentName">Your name</label>
+              <input type="text" id="parentName" name="parent_name" placeholder="Sarah Johnson" required />
+            </div>
+            <div class="field">
+              <label for="kidName">Kid's name</label>
+              <input type="text" id="kidName" name="kid_name" placeholder="Marcus" required />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="parentEmail">Your email</label>
+              <input type="email" id="parentEmail" name="parent_email" placeholder="sarah@email.com" required />
+            </div>
+            <div class="field">
+              <label for="parentPhone">Your phone</label>
+              <input type="tel" id="parentPhone" name="parent_phone" placeholder="(555) 000-0000" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="notes">Anything we should know? <span class="optional">Optional</span></label>
+            <textarea id="notes" name="notes" rows="2" placeholder="Allergies, schedule questions, etc."></textarea>
+          </div>
+
+          <button type="submit" id="submitBtn">
+            <span id="btnText">Send →</span>
+            <span id="btnLoading" hidden>Sending...</span>
+          </button>
+
+        </form>
+
+        <div id="successMsg" class="success" hidden>
+          <strong>You're on the list.</strong>
+          <p>We'll be in touch soon to confirm everything.</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Camp Washek · Summer 2025</span>
+      <a href="mailto:hello@washekhq.me">hello@washekhq.me</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
