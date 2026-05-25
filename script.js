@@ -2,7 +2,7 @@
 
 // To enable real form submissions, replace "REPLACE_ME" with your Formspree URL
 // e.g. "https://formspree.io/f/xxxxxxxx"
-const FORM_ENDPOINT = "REPLACE_ME";
+const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbypjO_O8XXkczBUx50yh1DI-yhSRPvXs_AfgUA_Evger0xY86E0Doi0tVdivi9M6AQeww/exec";
 
 // ── CALENDAR ─────────────────────────────────────────────
 
@@ -181,24 +181,25 @@ form.addEventListener("submit", async (e) => {
   btnText.hidden = true;
   btnLoading.hidden = false;
 
-  if (FORM_ENDPOINT === "REPLACE_ME") {
-    await new Promise(r => setTimeout(r, 500));
-    showSuccess();
-    return;
-  }
+  // Build URL-encoded body (required for Google Apps Script + no-cors)
+  const body = new URLSearchParams({
+    parent_name:    document.getElementById("parentName").value.trim(),
+    kid_name:       document.getElementById("kidName").value.trim(),
+    parent_email:   document.getElementById("parentEmail").value.trim(),
+    parent_phone:   document.getElementById("parentPhone").value.trim(),
+    selected_dates: document.getElementById("daysInput").value,
+    notes:          document.getElementById("notes").value.trim(),
+  });
 
   try {
-    const res = await fetch(FORM_ENDPOINT, {
+    // no-cors: we can't read the response, so we show success after sending
+    await fetch(FORM_ENDPOINT, {
       method: "POST",
-      body: new FormData(form),
-      headers: { Accept: "application/json" },
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
     });
-    if (res.ok) {
-      showSuccess();
-    } else {
-      alert("Something went wrong. Email hello@washekhq.me directly.");
-      resetBtn();
-    }
+    showSuccess();
   } catch {
     alert("Couldn't send. Email hello@washekhq.me directly.");
     resetBtn();
