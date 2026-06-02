@@ -9,7 +9,10 @@ const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbypjO_O8XXkczBUx5
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0);
 
-const LAST_MONTH = { year: 2026, month: 7 }; // August 2026 — last navigable month
+const LAST_MONTH = { year: 2026, month: 5 }; // June 2026 — last navigable month
+
+// Only these dates are open for sign-up
+const AVAILABLE_DATES = new Set(["2026-06-11"]);
 
 const selectedDates = new Set(); // stored as "YYYY-MM-DD"
 
@@ -78,8 +81,11 @@ function renderMonth(year, month) {
     cell.className = "cal-cell";
     cell.textContent = d;
 
-    if (isPast) {
+    const isAvailable = AVAILABLE_DATES.has(dateStr);
+
+    if (isPast || !isAvailable) {
       cell.classList.add("past");
+      if (isToday) cell.classList.add("today");
     } else {
       if (isToday)                    cell.classList.add("today");
       if (selectedDates.has(dateStr)) cell.classList.add("selected");
