@@ -157,19 +157,28 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   let valid = true;
+  const errors = [];
 
   form.querySelectorAll("[required]").forEach(f => {
     f.classList.remove("error");
-    if (!f.value.trim()) { f.classList.add("error"); valid = false; }
+    if (!f.value.trim()) {
+      f.classList.add("error");
+      valid = false;
+    }
   });
 
   if (selectedDates.size === 0) {
-    selectedEl.textContent = "Please pick at least one date.";
+    selectedEl.textContent = "↑ Please pick at least one date above.";
     selectedEl.classList.add("empty");
     valid = false;
   }
 
-  if (!valid) return;
+  if (!valid) {
+    const firstError = form.querySelector(".error");
+    const target = firstError || selectedEl;
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
 
   submitBtn.disabled = true;
   btnText.hidden = true;

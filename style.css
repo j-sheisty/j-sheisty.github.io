@@ -228,7 +228,11 @@ input:focus, textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(26,92,53,0.1);
 }
-input.error { border-color: #c0392b; }
+input.error {
+  border-color: #c0392b;
+  background: #fff8f8;
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+}
 textarea { resize: vertical; min-height: 72px; }
 
 button[type="submit"] {
