@@ -175,23 +175,19 @@ form.addEventListener("submit", async (e) => {
   btnText.hidden = true;
   btnLoading.hidden = false;
 
-  // Build URL-encoded body (required for Google Apps Script + no-cors)
-  const body = new URLSearchParams({
-    parent_name:    document.getElementById("parentName").value.trim(),
-    kid_name:       document.getElementById("kidName").value.trim(),
-    parent_email:   document.getElementById("parentEmail").value.trim(),
-    parent_phone:   document.getElementById("parentPhone").value.trim(),
-    selected_dates: document.getElementById("daysInput").value,
-    notes:          document.getElementById("notes").value.trim(),
-  });
+  const data = new FormData();
+  data.append("parent_name",    document.getElementById("parentName").value.trim());
+  data.append("kid_name",       document.getElementById("kidName").value.trim());
+  data.append("parent_email",   document.getElementById("parentEmail").value.trim());
+  data.append("parent_phone",   document.getElementById("parentPhone").value.trim());
+  data.append("selected_dates", document.getElementById("daysInput").value);
+  data.append("notes",          document.getElementById("notes").value.trim());
 
   try {
-    // no-cors: we can't read the response, so we show success after sending
     await fetch(FORM_ENDPOINT, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
+      body: data,
     });
     showSuccess();
   } catch {
