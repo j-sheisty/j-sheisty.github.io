@@ -1,49 +1,74 @@
-// Camp Washek
-
-// To enable real form submissions, replace "REPLACE_ME" with your Formspree URL
-// e.g. "https://formspree.io/f/xxxxxxxx"
+// ─────────────────────────────────────────────────────────
+//  FORM ENDPOINT — Google Apps Script URL
+// ─────────────────────────────────────────────────────────
 const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbx68_D-fUwm4VbUnLAI5MG_7rwYeOiG12nXuar78zRFcr3aL6of5MXSDCnPJe3PDnw3gg/exec";
 
-// ── CALENDAR ─────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────
+//  AVAILABLE DATES — edit this list to open or close dates
+//
+//  Format: "YYYY-MM-DD"
+//  To open a date:  add a new line like  "2026-06-18",
+//  To close a date: delete that line
+// ─────────────────────────────────────────────────────────
+const AVAILABLE_DATES = [
+  "2026-06-11",
+];
+
+
+// ─────────────────────────────────────────────────────────
+//  SESSIONS shown for every available date
+// ─────────────────────────────────────────────────────────
+const SESSIONS = [
+  { id: "first",  label: "First Session",  time: "9:00am – 12:00pm" },
+  { id: "lunch",  label: "Lunch",          time: "12:00pm – 1:00pm · optional" },
+  { id: "second", label: "Second Session", time: "1:00pm – 4:00pm" },
+];
+
+
+// ─────────────────────────────────────────────────────────
+//  CALENDAR
+// ─────────────────────────────────────────────────────────
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0);
 
-const LAST_MONTH = { year: 2026, month: 5 }; // June 2026 — last navigable month
+const availableSet = new Set(AVAILABLE_DATES);
 
-// Only these dates are open for sign-up
-const AVAILABLE_DATES = new Set(["2026-06-11"]);
+// sessionData: Map of dateStr -> Set of session ids the user picked
+const sessionData = new Map();
 
-const selectedDates = new Set(); // stored as "YYYY-MM-DD"
-
-// Always open at the current month
 let viewYear  = TODAY.getFullYear();
 let viewMonth = TODAY.getMonth();
 
-const calendarWrap  = document.getElementById("calendarWrap");
-const selectedEl    = document.getElementById("selectedDates");
-const daysInput     = document.getElementById("daysInput");
+// Don't go past the last available date's month
+const lastDate  = AVAILABLE_DATES.length ? AVAILABLE_DATES[AVAILABLE_DATES.length - 1] : null;
+const lastYear  = lastDate ? parseInt(lastDate.slice(0, 4)) : viewYear;
+const lastMonth = lastDate ? parseInt(lastDate.slice(5, 7)) - 1 : viewMonth;
+
+let activeDate = null; // currently selected date in the session panel
+
+const calendarWrap = document.getElementById("calendarWrap");
+const sessionPanel = document.getElementById("sessionPanel");
+const selectedEl   = document.getElementById("selectedDates");
+const daysInput    = document.getElementById("daysInput");
 
 function renderCalendar() {
   calendarWrap.innerHTML = "";
-
-  // Render current month + optionally the next one if within range
   renderMonth(viewYear, viewMonth);
 }
 
 function renderMonth(year, month) {
-  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
+  const monthNames  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const firstDay    = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const canGoPrev = !(year === TODAY.getFullYear() && month === TODAY.getMonth());
+  const canGoNext = !(year === lastYear && month === lastMonth);
 
   const wrap = document.createElement("div");
   wrap.className = "cal-month";
 
-  // Can't go before today's month; can't go past LAST_MONTH
-  const canGoPrev = !(year === TODAY.getFullYear() && month === TODAY.getMonth());
-  const canGoNext = !(year === LAST_MONTH.year && month === LAST_MONTH.month);
-
+  // Header
   const header = document.createElement("div");
   header.className = "cal-month-header";
   header.innerHTML = `
@@ -53,6 +78,7 @@ function renderMonth(year, month) {
   `;
   wrap.appendChild(header);
 
+  // Day-of-week labels
   const weekdays = document.createElement("div");
   weekdays.className = "cal-weekdays";
   ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d => {
@@ -62,6 +88,7 @@ function renderMonth(year, month) {
   });
   wrap.appendChild(weekdays);
 
+  // Days grid
   const grid = document.createElement("div");
   grid.className = "cal-days";
 
@@ -72,33 +99,29 @@ function renderMonth(year, month) {
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const cell     = document.createElement("div");
     const dateStr  = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const cellDate = new Date(year, month, d);
     const isPast   = cellDate < TODAY;
     const isToday  = cellDate.getTime() === TODAY.getTime();
+    const isOpen   = availableSet.has(dateStr);
 
+    const cell = document.createElement("div");
     cell.className = "cal-cell";
     cell.textContent = d;
 
-    const isAvailable = AVAILABLE_DATES.has(dateStr);
-
-    if (isPast || !isAvailable) {
+    if (isPast || !isOpen) {
       cell.classList.add("past");
       if (isToday) cell.classList.add("today");
     } else {
-      if (isToday)                    cell.classList.add("today");
-      if (selectedDates.has(dateStr)) cell.classList.add("selected");
+      if (isToday)               cell.classList.add("today");
+      if (dateStr === activeDate) cell.classList.add("active-date");
+      if (sessionData.has(dateStr) && sessionData.get(dateStr).size > 0)
+        cell.classList.add("has-sessions");
 
       cell.addEventListener("click", () => {
-        if (selectedDates.has(dateStr)) {
-          selectedDates.delete(dateStr);
-          cell.classList.remove("selected");
-        } else {
-          selectedDates.add(dateStr);
-          cell.classList.add("selected");
-        }
-        updateSelected();
+        activeDate = dateStr;
+        renderCalendar();         // re-render to update active highlight
+        showSessionPanel(dateStr);
       });
     }
 
@@ -120,33 +143,92 @@ function renderMonth(year, month) {
   });
 }
 
+function showSessionPanel(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const dayNames   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const label = `${dayNames[date.getDay()]}, ${monthNames[m - 1]} ${d}`;
+
+  if (!sessionData.has(dateStr)) sessionData.set(dateStr, new Set());
+  const picked = sessionData.get(dateStr);
+
+  sessionPanel.innerHTML = `
+    <div class="session-date-title">${label}</div>
+    <div class="session-opts" id="sessionOpts"></div>
+  `;
+
+  const opts = sessionPanel.querySelector("#sessionOpts");
+
+  SESSIONS.forEach(s => {
+    const row = document.createElement("label");
+    row.className = "session-opt" + (picked.has(s.id) ? " checked" : "");
+    row.innerHTML = `
+      <input type="checkbox" value="${s.id}" ${picked.has(s.id) ? "checked" : ""} />
+      <div class="session-opt-text">
+        <strong>${s.label}</strong>
+        <span>${s.time}</span>
+      </div>
+    `;
+    row.querySelector("input").addEventListener("change", ev => {
+      if (ev.target.checked) {
+        picked.add(s.id);
+        row.classList.add("checked");
+      } else {
+        picked.delete(s.id);
+        row.classList.remove("checked");
+      }
+      // If date has no sessions left, remove it
+      if (picked.size === 0) sessionData.delete(dateStr);
+      renderCalendar();
+      updateSelected();
+    });
+    opts.appendChild(row);
+  });
+
+  updateSelected();
+}
+
 function updateSelected() {
-  if (selectedDates.size === 0) {
+  if (sessionData.size === 0) {
     selectedEl.textContent = "No dates selected";
     selectedEl.classList.add("empty");
     daysInput.value = "";
     return;
   }
 
-  // Sort and format nicely
-  const sorted = [...selectedDates].sort();
-  const fmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-  const labels = sorted.map(ds => {
-    const [y, m, d] = ds.split("-").map(Number);
-    return fmt.format(new Date(Date.UTC(y, m - 1, d)));
-  });
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const sessionLabels = { first: "First Session", lunch: "Lunch", second: "Second Session" };
+  const order = ["first","lunch","second"];
 
-  selectedEl.textContent = labels.join(" · ");
+  const sorted = [...sessionData.keys()].sort();
+  const parts = sorted.map(ds => {
+    const [y, m, d] = ds.split("-").map(Number);
+    const picked = sessionData.get(ds);
+    if (!picked || picked.size === 0) return null;
+    const sessions = order.filter(id => picked.has(id)).map(id => sessionLabels[id]).join(", ");
+    return `${monthNames[m-1]} ${d}: ${sessions}`;
+  }).filter(Boolean);
+
+  if (parts.length === 0) {
+    selectedEl.textContent = "No dates selected";
+    selectedEl.classList.add("empty");
+    daysInput.value = "";
+    return;
+  }
+
+  selectedEl.textContent = parts.join("  ·  ");
   selectedEl.classList.remove("empty");
-  daysInput.value = sorted.join(", ");
+  daysInput.value = parts.join("; ");
 }
 
 renderCalendar();
 updateSelected();
 
 
-// ── FORM ─────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────
+//  FORM SUBMISSION
+// ─────────────────────────────────────────────────────────
 const form       = document.getElementById("signupForm");
 const successMsg = document.getElementById("successMsg");
 const submitBtn  = document.getElementById("submitBtn");
@@ -157,26 +239,23 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   let valid = true;
-  const errors = [];
 
   form.querySelectorAll("[required]").forEach(f => {
     f.classList.remove("error");
-    if (!f.value.trim()) {
-      f.classList.add("error");
-      valid = false;
-    }
+    if (!f.value.trim()) { f.classList.add("error"); valid = false; }
   });
 
-  if (selectedDates.size === 0) {
-    selectedEl.textContent = "↑ Please pick at least one date above.";
+  // Need at least one date with at least one session
+  const hasSession = [...sessionData.values()].some(s => s.size > 0);
+  if (!hasSession) {
+    selectedEl.textContent = "↑ Please pick at least one date and session above.";
     selectedEl.classList.add("empty");
     valid = false;
   }
 
   if (!valid) {
-    const firstError = form.querySelector(".error");
-    const target = firstError || selectedEl;
-    target.scrollIntoView({ behavior: "smooth", block: "center" });
+    const firstError = form.querySelector(".error") || selectedEl;
+    firstError.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
 
@@ -200,19 +279,19 @@ form.addEventListener("submit", async (e) => {
     });
     showSuccess();
   } catch {
-    alert("Couldn't send. Email hello@washekhq.me directly.");
+    alert("Couldn't send. Email johnwashek9@gmail.com directly.");
     resetBtn();
   }
 });
 
 function showSuccess() {
-  // Clear form data
   form.reset();
-  selectedDates.clear();
+  sessionData.clear();
+  activeDate = null;
   renderCalendar();
   updateSelected();
+  sessionPanel.innerHTML = '<p class="session-placeholder">← Click a date to see sessions</p>';
 
-  // Hide form, show success
   form.style.display = "none";
   successMsg.removeAttribute("hidden");
   successMsg.scrollIntoView({ behavior: "smooth", block: "center" });

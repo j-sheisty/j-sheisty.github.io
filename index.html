@@ -58,9 +58,14 @@
         <form id="signupForm" novalidate>
 
           <div class="field-group">
-            <label>Pick your dates</label>
-            <p class="field-hint">Click any day to select it. Click again to remove it.</p>
-            <div class="calendar-wrap" id="calendarWrap"></div>
+            <label>Pick your dates &amp; sessions</label>
+            <p class="field-hint">Click an available date, then choose your sessions.</p>
+            <div class="cal-layout">
+              <div class="calendar-wrap" id="calendarWrap"></div>
+              <div class="session-panel" id="sessionPanel">
+                <p class="session-placeholder">← Click a date to see sessions</p>
+              </div>
+            </div>
             <div class="selected-dates" id="selectedDates">No dates selected</div>
             <input type="hidden" id="daysInput" name="selected_dates" />
           </div>
