@@ -2,7 +2,7 @@
 
 // To enable real form submissions, replace "REPLACE_ME" with your Formspree URL
 // e.g. "https://formspree.io/f/xxxxxxxx"
-const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbypjO_O8XXkczBUx50yh1DI-yhSRPvXs_AfgUA_Evger0xY86E0Doi0tVdivi9M6AQeww/exec";
+const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbx68_D-fUwm4VbUnLAI5MG_7rwYeOiG12nXuar78zRFcr3aL6of5MXSDCnPJe3PDnw3gg/exec";
 
 // ── CALENDAR ─────────────────────────────────────────────
 
