@@ -20,9 +20,10 @@ const AVAILABLE_DATES = [
 //  SESSIONS shown for every available date
 // ─────────────────────────────────────────────────────────
 const SESSIONS = [
-  { id: "first",  label: "First Session",  time: "9:00am – 12:00pm" },
-  { id: "lunch",  label: "Lunch",          time: "12:00pm – 1:00pm" },
-  { id: "second", label: "Second Session", time: "1:00pm – 4:00pm" },
+  { id: "first",         label: "First Session",      time: "9:00am – 12:00pm" },
+  { id: "lunch_bring",   label: "Lunch — Bring own",  time: "12:00pm – 1:00pm", group: "lunch" },
+  { id: "lunch_provide", label: "Lunch — We provide", time: "12:00pm – 1:00pm", group: "lunch" },
+  { id: "second",        label: "Second Session",     time: "1:00pm – 4:00pm" },
 ];
 
 
@@ -172,22 +173,26 @@ function showSessionPanel(dateStr) {
     `;
     row.querySelector("input").addEventListener("change", ev => {
       if (ev.target.checked) {
+        // Deselect others in the same group (lunch is mutually exclusive)
+        if (s.group) {
+          SESSIONS.filter(x => x.group === s.group && x.id !== s.id).forEach(x => {
+            picked.delete(x.id);
+            const other = opts.querySelector(`input[value="${x.id}"]`);
+            if (other) { other.checked = false; other.closest(".session-opt").classList.remove("checked"); }
+          });
+        }
         picked.add(s.id);
         row.classList.add("checked");
       } else {
         picked.delete(s.id);
         row.classList.remove("checked");
       }
-      // If date has no sessions left, remove it
       if (picked.size === 0) sessionData.delete(dateStr);
       renderCalendar();
       updateSelected();
     });
     opts.appendChild(row);
   });
-
-  opts.insertAdjacentHTML("afterend",
-    `<p class="lunch-note">🥪 Lunch: kids can bring their own food or we can provide it — just let us know in the notes field below.</p>`);
 
   updateSelected();
 }
@@ -201,8 +206,8 @@ function updateSelected() {
   }
 
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const sessionLabels = { first: "First Session", lunch: "Lunch", second: "Second Session" };
-  const order = ["first","lunch","second"];
+  const sessionLabels = { first: "First Session", lunch_bring: "Lunch (own)", lunch_provide: "Lunch (provided)", second: "Second Session" };
+  const order = ["first","lunch_bring","lunch_provide","second"];
 
   const sorted = [...sessionData.keys()].sort();
   const parts = sorted.map(ds => {
