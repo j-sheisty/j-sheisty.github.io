@@ -167,41 +167,39 @@ function showSessionPanel(dateStr) {
     if (rendered.has(s.id)) return;
 
     if (s.group) {
-      // Find all sessions in this group and render them side by side
       const groupSessions = SESSIONS.filter(x => x.group === s.group);
-      const groupRow = document.createElement("div");
-      groupRow.className = "session-group-row";
+      groupSessions.forEach(x => rendered.add(x.id));
+
+      const card = document.createElement("div");
+      card.className = "session-opt lunch-card";
+      card.innerHTML = `
+        <div class="lunch-card-header">
+          <strong>Lunch</strong>
+          <span>12:00pm – 1:00pm</span>
+        </div>
+        <div class="lunch-card-choices"></div>
+      `;
+      const choices = card.querySelector(".lunch-card-choices");
       groupSessions.forEach(gs => {
-        rendered.add(gs.id);
-        const btn = document.createElement("label");
-        btn.className = "session-opt" + (picked.has(gs.id) ? " checked" : "");
-        btn.innerHTML = `
-          <input type="checkbox" value="${gs.id}" ${picked.has(gs.id) ? "checked" : ""} />
-          <div class="session-opt-text">
-            <strong>${gs.label}</strong>
-            <span>${gs.time}</span>
-          </div>
-        `;
-        btn.querySelector("input").addEventListener("change", ev => {
-          if (ev.target.checked) {
-            groupSessions.filter(x => x.id !== gs.id).forEach(x => {
-              picked.delete(x.id);
-              const other = opts.querySelector(`input[value="${x.id}"]`);
-              if (other) { other.checked = false; other.closest(".session-opt").classList.remove("checked"); }
-            });
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "lunch-choice" + (picked.has(gs.id) ? " selected" : "");
+        btn.textContent = gs.label.replace("Lunch — ", "");
+        btn.addEventListener("click", () => {
+          const alreadySelected = picked.has(gs.id);
+          groupSessions.forEach(x => { picked.delete(x.id); });
+          choices.querySelectorAll(".lunch-choice").forEach(b => b.classList.remove("selected"));
+          if (!alreadySelected) {
             picked.add(gs.id);
-            btn.classList.add("checked");
-          } else {
-            picked.delete(gs.id);
-            btn.classList.remove("checked");
+            btn.classList.add("selected");
           }
           if (picked.size === 0) sessionData.delete(dateStr);
           renderCalendar();
           updateSelected();
         });
-        groupRow.appendChild(btn);
+        choices.appendChild(btn);
       });
-      opts.appendChild(groupRow);
+      opts.appendChild(card);
     } else {
       rendered.add(s.id);
       const row = document.createElement("label");
