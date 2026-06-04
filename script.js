@@ -21,7 +21,7 @@ const AVAILABLE_DATES = [
 // ─────────────────────────────────────────────────────────
 const SESSIONS = [
   { id: "first",  label: "First Session",  time: "9:00am – 12:00pm" },
-  { id: "lunch",  label: "Lunch",          time: "12:00pm – 1:00pm · optional" },
+  { id: "lunch",  label: "Lunch",          time: "12:00pm – 1:00pm" },
   { id: "second", label: "Second Session", time: "1:00pm – 4:00pm" },
 ];
 
@@ -185,6 +185,9 @@ function showSessionPanel(dateStr) {
     });
     opts.appendChild(row);
   });
+
+  opts.insertAdjacentHTML("afterend",
+    `<p class="lunch-note">🥪 Lunch: kids can bring their own food or we can provide it — just let us know in the notes field below.</p>`);
 
   updateSelected();
 }
