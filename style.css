@@ -305,6 +305,12 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 .session-opt-text strong { display: block; font-size: 0.88rem; color: var(--text); }
 .session-opt-text span { font-size: 0.78rem; color: #999; }
 .session-opt.checked .session-opt-text strong { color: var(--accent); }
+
+.session-group-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 .lunch-note {
   font-size: 0.8rem;
   color: var(--muted);

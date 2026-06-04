@@ -161,37 +161,67 @@ function showSessionPanel(dateStr) {
 
   const opts = sessionPanel.querySelector("#sessionOpts");
 
+  // Group sessions: standalone ones go solo, grouped ones share a row
+  const rendered = new Set();
   SESSIONS.forEach(s => {
-    const row = document.createElement("label");
-    row.className = "session-opt" + (picked.has(s.id) ? " checked" : "");
-    row.innerHTML = `
-      <input type="checkbox" value="${s.id}" ${picked.has(s.id) ? "checked" : ""} />
-      <div class="session-opt-text">
-        <strong>${s.label}</strong>
-        <span>${s.time}</span>
-      </div>
-    `;
-    row.querySelector("input").addEventListener("change", ev => {
-      if (ev.target.checked) {
-        // Deselect others in the same group (lunch is mutually exclusive)
-        if (s.group) {
-          SESSIONS.filter(x => x.group === s.group && x.id !== s.id).forEach(x => {
-            picked.delete(x.id);
-            const other = opts.querySelector(`input[value="${x.id}"]`);
-            if (other) { other.checked = false; other.closest(".session-opt").classList.remove("checked"); }
-          });
-        }
-        picked.add(s.id);
-        row.classList.add("checked");
-      } else {
-        picked.delete(s.id);
-        row.classList.remove("checked");
-      }
-      if (picked.size === 0) sessionData.delete(dateStr);
-      renderCalendar();
-      updateSelected();
-    });
-    opts.appendChild(row);
+    if (rendered.has(s.id)) return;
+
+    if (s.group) {
+      // Find all sessions in this group and render them side by side
+      const groupSessions = SESSIONS.filter(x => x.group === s.group);
+      const groupRow = document.createElement("div");
+      groupRow.className = "session-group-row";
+      groupSessions.forEach(gs => {
+        rendered.add(gs.id);
+        const btn = document.createElement("label");
+        btn.className = "session-opt" + (picked.has(gs.id) ? " checked" : "");
+        btn.innerHTML = `
+          <input type="checkbox" value="${gs.id}" ${picked.has(gs.id) ? "checked" : ""} />
+          <div class="session-opt-text">
+            <strong>${gs.label}</strong>
+            <span>${gs.time}</span>
+          </div>
+        `;
+        btn.querySelector("input").addEventListener("change", ev => {
+          if (ev.target.checked) {
+            groupSessions.filter(x => x.id !== gs.id).forEach(x => {
+              picked.delete(x.id);
+              const other = opts.querySelector(`input[value="${x.id}"]`);
+              if (other) { other.checked = false; other.closest(".session-opt").classList.remove("checked"); }
+            });
+            picked.add(gs.id);
+            btn.classList.add("checked");
+          } else {
+            picked.delete(gs.id);
+            btn.classList.remove("checked");
+          }
+          if (picked.size === 0) sessionData.delete(dateStr);
+          renderCalendar();
+          updateSelected();
+        });
+        groupRow.appendChild(btn);
+      });
+      opts.appendChild(groupRow);
+    } else {
+      rendered.add(s.id);
+      const row = document.createElement("label");
+      row.className = "session-opt" + (picked.has(s.id) ? " checked" : "");
+      row.innerHTML = `
+        <input type="checkbox" value="${s.id}" ${picked.has(s.id) ? "checked" : ""} />
+        <div class="session-opt-text">
+          <strong>${s.label}</strong>
+          <span>${s.time}</span>
+        </div>
+      `;
+      row.querySelector("input").addEventListener("change", ev => {
+        if (ev.target.checked) { picked.add(s.id); row.classList.add("checked"); }
+        else { picked.delete(s.id); row.classList.remove("checked"); }
+        if (picked.size === 0) sessionData.delete(dateStr);
+        renderCalendar();
+        updateSelected();
+      });
+      opts.appendChild(row);
+    }
   });
 
   updateSelected();
