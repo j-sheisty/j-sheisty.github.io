@@ -13,6 +13,7 @@ const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbx68_D-fUwm4VbUnL
 // ─────────────────────────────────────────────────────────
 const AVAILABLE_DATES = [
   "2026-06-11",
+  "2026-06-9",
 ];
 
 
